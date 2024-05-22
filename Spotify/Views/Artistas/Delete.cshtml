@@ -1,0 +1,33 @@
+﻿@model Spotify.Models.Artista
+
+@{
+    ViewData["Title"] = "Borrar";
+}
+
+<h1>Delete</h1>
+
+<h3>Estas seguro de borrar este artista?</h3>
+<div>
+    <h4>Artista</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Nombre)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Nombre)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="IdArtista" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index" class="btn btn-success">Vuelve a la lista</a>
+    </form>
+</div>
