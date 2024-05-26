@@ -33,23 +33,26 @@ namespace Spotify.Controllers
                 return NotFound();
             }
 
-            var tarjetum = await _context.Tarjeta
-                .Include(t => t.IdUsuarioNavigation)
-                .FirstOrDefaultAsync(m => m.IdTarjeta == id);
-            if (tarjetum == null)
+            var tarjeta = await _context.Tarjeta
+                .FirstOrDefaultAsync(m => m.IdUsuario == id);
+
+            if (tarjeta == null)
             {
                 return NotFound();
             }
 
-            return View(tarjetum);
+            return View(tarjeta);
         }
 
         // GET: Tarjetums/Create
-        public IActionResult Create()
+        public IActionResult Create(int idUsuario)
         {
-            ViewData["IdUsuario"] = new SelectList(_context.Usuarios, "IdUsuario", "IdUsuario");
-            return View();
+            var tarjetum = new Tarjetum { IdUsuario = idUsuario };
+
+            // Pasar el objeto Tarjetum a la vista
+            return View(tarjetum);
         }
+
 
         // POST: Tarjetums/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -58,11 +61,23 @@ namespace Spotify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdTarjeta,IdUsuario,NombreTarjeta,NumeroTarjeta,FechaExpiracion,Cvv")] Tarjetum tarjetum)
         {
+            
             if (ModelState.IsValid)
             {
                 _context.Add(tarjetum);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                // Cambiar el estado del usuario a premium si aún no lo es
+                var usuario = await _context.Usuarios.FindAsync(tarjetum.IdUsuario);
+                if (usuario != null && !usuario.Premium)
+                {
+                    usuario.Premium = true;
+                    _context.Update(usuario);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Redireccionar a la vista de detalles del usuario
+                return RedirectToAction("Details", "Usuarios", new { id = tarjetum.IdUsuario });
             }
             ViewData["IdUsuario"] = new SelectList(_context.Usuarios, "IdUsuario", "IdUsuario", tarjetum.IdUsuario);
             return View(tarjetum);
@@ -115,7 +130,7 @@ namespace Spotify.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Usuarios", new { id = tarjetum.IdUsuario });
             }
             ViewData["IdUsuario"] = new SelectList(_context.Usuarios, "IdUsuario", "IdUsuario", tarjetum.IdUsuario);
             return View(tarjetum);

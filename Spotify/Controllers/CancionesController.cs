@@ -46,9 +46,9 @@ namespace Spotify.Controllers
         }
 
         // GET: Canciones/Create
-        public IActionResult Create()
+        public IActionResult Create(int idAlbum)
         {
-            ViewData["IdAlbum"] = new SelectList(_context.Albums, "IdAlbum", "IdAlbum");
+            ViewBag.IdAlbum = idAlbum;  // Pasar el idAlbum a la vista
             return View();
         }
 
@@ -59,24 +59,9 @@ namespace Spotify.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdCancion,Nombre,Duracion,Url,IdAlbum")] Cancione cancione)
         {
-            Console.WriteLine("gola");
-            Console.WriteLine($"Nombre: {cancione.Nombre}");
-            Console.WriteLine($"Duracion: {cancione.Duracion}");
-            Console.WriteLine($"Url: {cancione.Url}");
-            Console.WriteLine($"IdAlbum: {cancione.IdAlbum}");
-            if(!ModelState.IsValid)
-{
-                Console.WriteLine("ModelState no es válido. Errores de validación:");
-                foreach (var modelStateEntry in ModelState.Values)
-                {
-                    foreach (var error in modelStateEntry.Errors)
-                    {
-                        Console.WriteLine($"- {error.ErrorMessage}");
-                    }
-                }
-
+            if (!ModelState.IsValid)
+            {
                 ViewData["IdAlbum"] = new SelectList(_context.Albums, "IdAlbum", "IdAlbum", cancione.IdAlbum);
-                Console.WriteLine("aqui esta el fallo");
                 return View(cancione);
             }
 
@@ -85,7 +70,9 @@ namespace Spotify.Controllers
                 // Agregar la canción al contexto y guardar los cambios
                 _context.Add(cancione);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                // Redireccionar al detalle del álbum
+                return RedirectToAction("Details", "Albums", new { id = cancione.IdAlbum });
             }
             catch (Exception ex)
             {
@@ -116,6 +103,9 @@ namespace Spotify.Controllers
         // POST: Canciones/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Canciones/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IdCancion,Nombre,Duracion,Url,IdAlbum")] Cancione cancione)
@@ -143,11 +133,14 @@ namespace Spotify.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+
+                // Redireccionar al detalle de la canción
+                return RedirectToAction("Details", new { id = cancione.IdCancion });
             }
             ViewData["IdAlbum"] = new SelectList(_context.Albums, "IdAlbum", "IdAlbum", cancione.IdAlbum);
             return View(cancione);
         }
+
 
         // GET: Canciones/Delete/5
         public async Task<IActionResult> Delete(int? id)

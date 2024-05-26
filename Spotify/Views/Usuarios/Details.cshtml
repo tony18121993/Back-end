@@ -68,5 +68,14 @@
 </div>
 <div>
     <a asp-action="Edit" class="btn btn-success" asp-route-id="@Model?.IdUsuario">Editar</a> |
-    <a asp-action="Index" class="btn btn-primary">Vuelve a la lista</a>
+    @if (Model.Premium)
+    {
+        <a asp-action="Details" asp-controller="Tarjetums" asp-route-id="@Model.IdUsuario" class="btn btn-primary">Ver Tarjeta</a>
+    }
+    else
+    {
+        <a asp-action="Create" asp-controller="Tarjetums" asp-route-idUsuario="@Model.IdUsuario" class="btn btn-primary">Añadir Tarjeta</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
 </div>
+

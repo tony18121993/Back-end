@@ -35,6 +35,7 @@ namespace Spotify.Controllers
 
             var album = await _context.Albums
                 .Include(a => a.IdArtistaNavigation)
+                .Include(a => a.Canciones)
                 .FirstOrDefaultAsync(m => m.IdAlbum == id);
             if (album == null)
             {
@@ -45,26 +46,30 @@ namespace Spotify.Controllers
         }
 
         // GET: Albums/Create
-        public IActionResult Create()
+        public IActionResult Create(int idArtista)
         {
-            ViewData["IdArtista"] = new SelectList(_context.Artistas, "IdArtista", "IdArtista");
-            return View();
+            var album = new Album { IdArtista = idArtista };
+            return View(album);
         }
 
         // POST: Albums/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdAlbum,IdArtista,Nombre,Descripcion,Genero,Imagen")] Album album)
         {
             if (ModelState.IsValid)
             {
+                var artista = await _context.Artistas.FindAsync(album.IdArtista);
+                if (artista == null)
+                {
+                    ModelState.AddModelError("", "El artista especificado no existe.");
+                    return View(album);
+                }
+
                 _context.Add(album);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Artistas", new { id = album.IdArtista });
             }
-            ViewData["IdArtista"] = new SelectList(_context.Artistas, "IdArtista", "IdArtista", album.IdArtista);
             return View(album);
         }
 
@@ -115,7 +120,7 @@ namespace Spotify.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = album.IdAlbum });
             }
             ViewData["IdArtista"] = new SelectList(_context.Artistas, "IdArtista", "IdArtista", album.IdArtista);
             return View(album);

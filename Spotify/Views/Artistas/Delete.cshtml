@@ -6,7 +6,7 @@
 
 <h1>Delete</h1>
 
-<h3>Estas seguro de borrar este artista?</h3>
+<h3>Estas seguro de borrar este artista? Se eliminaran todos sus albums y sus canciones</h3>
 <div>
     <h4>Artista</h4>
     <hr />
@@ -27,7 +27,7 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="IdArtista" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <input type="submit" value="Eliminar Artista" class="btn btn-danger" /> |
         <a asp-action="Index" class="btn btn-success">Vuelve a la lista</a>
     </form>
 </div>

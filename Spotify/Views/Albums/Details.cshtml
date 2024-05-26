@@ -1,48 +1,83 @@
 ﻿@model Spotify.Models.Album
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalles";
 }
 
-<h1>Details</h1>
+<h1>Detalles del Álbum</h1>
 
 <div>
     <h4>Album</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Nombre)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Nombre)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Descripcion)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Descripcion)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Genero)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Genero)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Imagen)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Imagen)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IdArtistaNavigation)
+        <dt class="col-sm-2">
+            @Html.Label("Artista")
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IdArtistaNavigation.IdArtista)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.IdArtistaNavigation.Nombre)
         </dd>
     </dl>
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdAlbum">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <h4>Canciones</h4>
+    <hr />
+    <a asp-controller="Canciones" asp-action="Create" asp-route-idAlbum="@Model.IdAlbum" class="btn btn-primary">Añadir nueva canción</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Duración</th>
+                <th>URL</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cancion in Model.Canciones)
+            {
+                <tr>
+                    <td>@cancion.Nombre</td>
+                    <td>@cancion.Duracion</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(cancion.Url))
+                        {
+                            @cancion.Url
+                        }
+                    </td>
+                    <td>
+                        <a asp-controller="Canciones" asp-action="Details" asp-route-id="@cancion.IdCancion" class="btn btn-info">Ver detalles</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.IdAlbum" class="btn btn-warning">Editar</a> |
+    <a asp-controller="Artistas" asp-action="Details" asp-route-id="@Model?.IdArtista" class="btn btn-success">Volver</a>
 </div>

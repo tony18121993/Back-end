@@ -33,6 +33,7 @@ namespace Spotify.Controllers
             }
 
             var artista = await _context.Artistas
+                .Include(a => a.Albums)
                 .FirstOrDefaultAsync(m => m.IdArtista == id);
             if (artista == null)
             {
@@ -152,5 +153,7 @@ namespace Spotify.Controllers
         {
             return _context.Artistas.Any(e => e.IdArtista == id);
         }
+
+
     }
 }
