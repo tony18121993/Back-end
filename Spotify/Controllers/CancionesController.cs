@@ -1,12 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon.S3.Transfer;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Spotify.Models;
+using Amazon.S3.Model;
 
 namespace Spotify.Controllers
 {
@@ -216,7 +220,133 @@ namespace Spotify.Controllers
             return Json(canciones);
         }
 
+        //Subir canciones bucket s3 
+        // GET: /Canciones/Subir
+        public IActionResult CrearCancion()
+        {
+            return View();
+        }
+
+        // POST: /Canciones/Subir
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Subir(IFormFile cancion, int idArtista, int idAlbum, string nombreCancion)
+        {
+            try
+            {
+                // Configurar credenciales de AWS desde el archivo de texto
+                var credentialsPath = @"C:\Users\TONY\.aws\credentials";
+
+                // Leer el contenido del archivo
 
 
+                string lines;
+                using (StreamReader reader = new StreamReader(credentialsPath))
+                {
+                    lines = reader.ReadToEnd();
+                }
+                // Buscar las claves en el contenido
+                string accessKeyId = null;
+                string secretAccessKey = null;
+                string sessionToken = null;
+
+                string[] linesArray = lines.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Iterar sobre las líneas
+                foreach (var line in linesArray)
+                {
+                    if (line.StartsWith("aws_access_key_id="))
+                    {
+                        accessKeyId = line.Substring("aws_access_key_id=".Length).Trim();
+                    }
+                    else if (line.StartsWith("aws_secret_access_key="))
+                    {
+                        secretAccessKey = line.Substring("aws_secret_access_key=".Length).Trim();
+                    }
+                    else if (line.StartsWith("aws_session_token="))
+                    {
+                        sessionToken = line.Substring("aws_session_token=".Length).Trim();
+                    }
+                }
+
+                // Verificar si todas las credenciales fueron encontradas
+                if (accessKeyId == null || secretAccessKey == null)
+                {
+                    Console.WriteLine("No se encontraron las credenciales necesarias en el archivo.");
+                }
+                else
+                {
+                    Console.WriteLine("Credenciales obtenidas exitosamente:");
+                    Console.WriteLine($"Access Key ID: {accessKeyId}");
+                    Console.WriteLine($"Secret Access Key: {secretAccessKey}");
+                    Console.WriteLine($"Session Token: {sessionToken ?? "No hay token de sesión"}");
+                }
+                // Subir la canción a Amazon S3
+                using (var client = new AmazonS3Client(accessKeyId, secretAccessKey, sessionToken, Amazon.RegionEndpoint.USEast1)) // Cambiar la región según corresponda
+                {
+                    // Verificar si la carpeta del artista existe, si no, crearla
+                    var artistaFolderKey = $"artistas/{idArtista}/";
+                    if (!await DoesS3FolderExistAsync(client, "spotify-bucket-proyecto", artistaFolderKey))
+                    {
+                        await CreateS3FolderAsync(client, "spotify-bucket-proyecto", artistaFolderKey);
+                    }
+
+                    // Verificar si la carpeta del álbum existe, si no, crearla
+                    var albumFolderKey = $"artistas/{idArtista}/albumes/{idAlbum}";
+                    if (!await DoesS3FolderExistAsync(client, "spotify-bucket-proyecto", albumFolderKey))
+                    {
+                        await CreateS3FolderAsync(client, "spotify-bucket-proyecto", albumFolderKey);
+                    }
+
+                    // Subir la canción al bucket de S3
+                    var key = $"{albumFolderKey}/{nombreCancion}"; // Definir la ruta en el bucket de S3
+                    using (var transferUtility = new TransferUtility(client))
+                    {
+                        using (var stream = cancion.OpenReadStream())
+                        {
+                            await transferUtility.UploadAsync(stream, "spotify-bucket-proyecto", key); // Cambiar "nombre-del-bucket" por el nombre de tu bucket de S3
+                        }
+                    }
+
+                    // Guardar la URL de la canción en la base de datos
+                    var urlCancion = $"https://spotify-bucket-proyecto.s3.amazonaws.com/{key}";
+                    var nuevaCancion = new Cancione { Nombre = nombreCancion, Url = urlCancion, IdAlbum = idAlbum };
+                    _context.Canciones.Add(nuevaCancion);
+                    await _context.SaveChangesAsync();
+
+                    return Ok("Canción subida exitosamente a Amazon S3.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al subir la canción a Amazon S3: {ex.Message}");
+            }
+        }
+
+        private async Task<bool> DoesS3FolderExistAsync(AmazonS3Client client, string bucketName, string folderKey)
+        {
+            var request = new ListObjectsV2Request
+            {
+                BucketName = bucketName,
+                Prefix = folderKey,
+                Delimiter = "/"
+            };
+
+            var response = await client.ListObjectsV2Async(request);
+
+            return response.CommonPrefixes.Count > 0;
+        }
+
+        private async Task CreateS3FolderAsync(AmazonS3Client client, string bucketName, string folderKey)
+        {
+            var request = new PutObjectRequest
+            {
+                BucketName = bucketName,
+                Key = folderKey.TrimEnd('/') + "/",
+                ContentBody = ""
+            };
+
+            await client.PutObjectAsync(request);
+        }
     }
 }

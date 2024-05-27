@@ -6,7 +6,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de JWT
+// Configuraciï¿½n de JWT
 var jwtConfigSection = builder.Configuration.GetSection("JwtConfig");
 var jwtConfig = jwtConfigSection.Get<JwtConfig>();
 Console.WriteLine("Valor de SecretKey: " + jwtConfig.SecretKey);
@@ -34,7 +34,7 @@ builder.Services.AddDbContext<SpotifyContext>(options =>
 
 var app = builder.Build();
 
-// Configuración de middleware y enrutamiento
+// Configuraciï¿½n de middleware y enrutamiento
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

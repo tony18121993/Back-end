@@ -1,0 +1,27 @@
+﻿@model Spotify.Models.SubirCancionViewModel
+
+@{
+    ViewData["Title"] = "Subir Canción";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Subir" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="cancion">Seleccionar canción:</label>
+        <input type="file" class="form-control-file" id="cancion" name="cancion">
+    </div>
+    <div class="form-group">
+        <label for="idArtista">ID del Artista:</label>
+        <input type="text" class="form-control" id="idArtista" name="idArtista">
+    </div>
+    <div class="form-group">
+        <label for="idAlbum">ID del Álbum:</label>
+        <input type="text" class="form-control" id="idAlbum" name="idAlbum">
+    </div>
+    <div class="form-group">
+        <label for="nombreCancion">Nombre de la Canción:</label>
+        <input type="text" class="form-control" id="nombreCancion" name="nombreCancion">
+    </div>
+    <button type="submit" class="btn btn-primary">Subir Canción</button>
+</form>
