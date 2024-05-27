@@ -163,11 +163,18 @@ namespace Spotify.Controllers
             var tarjetum = await _context.Tarjeta.FindAsync(id);
             if (tarjetum != null)
             {
+                var usuario = await _context.Usuarios.FindAsync(tarjetum.IdUsuario);
+                if (usuario != null)
+                {
+                    usuario.Premium = false;  // Actualizar el atributo Premium del usuario a false
+                    _context.Update(usuario); // Guardar los cambios en el contexto
+                }
+
                 _context.Tarjeta.Remove(tarjetum);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Details", "Usuarios", new { id = tarjetum.IdUsuario });
         }
 
         private bool TarjetumExists(int id)

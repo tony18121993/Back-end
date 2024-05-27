@@ -48,8 +48,9 @@
             </div>
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Premium" /> @Html.DisplayNameFor(model => model.Premium)
+                    <input class="form-check-input" asp-for="Premium" disabled /> @Html.DisplayNameFor(model => model.Premium)
                 </label>
+                <input type="hidden" asp-for="Premium" value="false" />
             </div>
             <div class="form-group form-check">
                 <label class="form-check-label">

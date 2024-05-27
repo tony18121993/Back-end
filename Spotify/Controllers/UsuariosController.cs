@@ -213,15 +213,44 @@ namespace Spotify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario != null)
+            var usuario = await _context.Usuarios
+                .Include(u => u.ListasReproduccions) // Incluir las listas de reproducción asociadas
+                    .ThenInclude(lr => lr.CancionesListaReproduccions) // Incluir la tabla intermedia
+                .FirstOrDefaultAsync(u => u.IdUsuario == id);
+
+            if (usuario == null)
             {
-                _context.Usuarios.Remove(usuario);
+                return NotFound();
             }
+
+            // Cargar la tarjeta asociada al usuario
+            var tarjetum = await _context.Tarjeta.FirstOrDefaultAsync(u => u.IdUsuario == id);
+
+            // Si el usuario tiene una tarjeta asociada, eliminarla
+            if (tarjetum != null)
+            {
+                _context.Tarjeta.Remove(tarjetum);
+            }
+
+            // Eliminar las canciones asociadas a las listas de reproducción del usuario
+            foreach (var lista in usuario.ListasReproduccions)
+            {
+                _context.CancionesListaReproduccions.RemoveRange(lista.CancionesListaReproduccions);
+            }
+
+            // Eliminar las listas de reproducción del usuario
+            _context.ListasReproduccions.RemoveRange(usuario.ListasReproduccions);
+
+            // Eliminar al usuario
+            _context.Usuarios.Remove(usuario);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+
+
+
 
         private bool UsuarioExists(int id)
         {

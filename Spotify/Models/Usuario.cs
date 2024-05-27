@@ -11,6 +11,8 @@ public partial class Usuario
 
     public string Password { get; set; } = null!;
 
+    public string PasswordMasked => new string('*', 5);
+
     public string Nombre { get; set; } = null!;
 
     public string Apellidos { get; set; } = null!;

@@ -1,12 +1,12 @@
 ﻿@model Spotify.Models.ListasReproduccion
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar";
 }
 
-<h1>Edit</h1>
+<h1>Editar</h1>
 
-<h4>ListasReproduccion</h4>
+<h4>Lista de Reproduccion</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -14,31 +14,33 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="IdLista" />
             <div class="form-group">
-                <label asp-for="IdUsuario" class="control-label"></label>
-                <select asp-for="IdUsuario" class="form-control" asp-items="ViewBag.IdUsuario"></select>
-                <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                <label class="control-label">Usuario Propietario</label>
+                <input type="text" class="form-control" value="@ViewBag.Username" readonly />
+                <input type="hidden" asp-for="IdUsuario" /> <!-- Mantener el id del usuario -->
             </div>
             <div class="form-group">
                 <label asp-for="Nombre" class="control-label"></label>
                 <input asp-for="Nombre" class="form-control" />
                 <span asp-validation-for="Nombre" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
+            <div class="form-group form-check my-3">
                 <label class="form-check-label">
                     <input class="form-check-input" asp-for="Publica" /> @Html.DisplayNameFor(model => model.Publica)
                 </label>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Guardar Cambios" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" class="btn btn-success my-3">Cancelar</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

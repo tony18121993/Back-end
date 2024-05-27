@@ -139,15 +139,51 @@ namespace Spotify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Buscar al artista por su id
             var artista = await _context.Artistas.FindAsync(id);
-            if (artista != null)
+
+            if (artista == null)
             {
-                _context.Artistas.Remove(artista);
+                return NotFound();
             }
+
+            // Buscar los álbumes del artista
+            var albumesDelArtista = await _context.Albums.Where(a => a.IdArtista == id).ToListAsync();
+
+            // Buscar las canciones de los álbumes del artista
+            var cancionesDelArtista = new List<Cancione>();
+            foreach (var album in albumesDelArtista)
+            {
+                var cancionesEnAlbum = await _context.Canciones.Where(c => c.IdAlbum == album.IdAlbum).ToListAsync();
+                cancionesDelArtista.AddRange(cancionesEnAlbum);
+            }
+
+            // Eliminar las entradas en la tabla CancionesListaReproduccion asociadas a las canciones del artista
+            foreach (var cancion in cancionesDelArtista)
+            {
+                var entradasListaReproduccion = await _context.CancionesListaReproduccions
+                    .Where(clr => clr.IdCancion == cancion.IdCancion)
+                    .ToListAsync();
+
+                _context.CancionesListaReproduccions.RemoveRange(entradasListaReproduccion);
+            }
+
+            // Eliminar las canciones del artista
+            _context.Canciones.RemoveRange(cancionesDelArtista);
+
+            // Eliminar los álbumes del artista
+            _context.Albums.RemoveRange(albumesDelArtista);
+
+            // Finalmente, eliminar al artista
+            _context.Artistas.Remove(artista);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+
+
+
 
         private bool ArtistaExists(int id)
         {

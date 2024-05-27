@@ -1,36 +1,72 @@
 ﻿@model Spotify.Models.ListasReproduccion
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalles";
 }
 
-<h1>Details</h1>
+<h2 class="mb-3 border-bottom pb-3">Detalles de la lista de reproducción @Model.Nombre</h2>
 
-<div>
-    <h4>ListasReproduccion</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nombre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nombre)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Publica)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Publica)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IdUsuarioNavigation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IdUsuarioNavigation.IdUsuario)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdLista">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+<!-- Mostrar canciones de la lista de reproducción -->
+<div class="row">
+    <!-- Columna para mostrar todas las canciones -->
+    <div class="col-md-6">
+        <h3>Todas las canciones</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Agregar a la lista</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cancion in (List<Cancione>)ViewData["TodasLasCanciones"])
+                {
+                    <tr>
+                        <td>@cancion.Nombre</td>
+                        <td>
+                            <form asp-action="AgregarCancion" asp-controller="ListasReproduccions">
+                                <input type="hidden" name="idLista" value="@Model.IdLista" />
+                                <input type="hidden" name="idCancion" value="@cancion.IdCancion" />
+                                <button type="submit" class="btn btn-primary">Agregar a la lista</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- Columna para mostrar canciones de la lista de reproducción -->
+    <div class="col-md-6">
+       
+        <h3>Canciones en esta lista de reproducción</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cancion in Model.CancionesListaReproduccions)
+                {
+                    <tr>
+                        <td>@cancion.IdCancionNavigation.Nombre</td>
+                        <td>
+                            <form asp-action="EliminarCancion" asp-controller="ListasReproduccions" method="post">
+                                <input type="hidden" name="idLista" value="@Model.IdLista" />
+                                <input type="hidden" name="idCancion" value="@cancion.IdCancion" />
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
