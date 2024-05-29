@@ -190,6 +190,31 @@ namespace Spotify.Controllers
             return _context.Artistas.Any(e => e.IdArtista == id);
         }
 
+        [HttpGet]
+        [Route("ArtistasTodos")]
+        public async Task<IActionResult> ArtistasTodos()
+        {
+            var artistasConImagen = await _context.Artistas
+                .GroupJoin(
+                    _context.Albums,
+                    artista => artista.IdArtista,
+                    album => album.IdArtista,
+                    (artista, albums) => new
+                    {
+                        Artista = artista,
+                        PrimerAlbumImagen = albums.OrderBy(album => album.IdArtista).Select(album => album.Imagen).FirstOrDefault()
+                    })
+                .Select(a => new
+                {
+                    a.Artista.IdArtista,
+                    a.Artista.Nombre,
+                    a.Artista.Descripcion,
+                    ImagenPrimerAlbum = a.PrimerAlbumImagen
+                })
+                .ToListAsync();
+
+            return Json(artistasConImagen);
+        }
 
     }
 }

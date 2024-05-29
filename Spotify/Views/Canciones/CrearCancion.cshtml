@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Subir Canción";
+    int idArtista = ViewBag.IdArtista;
+    int idAlbum = ViewBag.IdAlbum;
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -12,16 +14,20 @@
         <input type="file" class="form-control-file" id="cancion" name="cancion">
     </div>
     <div class="form-group">
-        <label for="idArtista">ID del Artista:</label>
-        <input type="text" class="form-control" id="idArtista" name="idArtista">
+        <label for="duracion">Duracion:</label>
+        <input type="text" class="form-control" id="duracion" name="duracion">
     </div>
+   <div class="form-group">
+        <input type="hidden" class="form-control" id="idArtista" name="idArtista" value="@idArtista" readonly>
+    </div> 
     <div class="form-group">
-        <label for="idAlbum">ID del Álbum:</label>
-        <input type="text" class="form-control" id="idAlbum" name="idAlbum">
+        <input type="hidden" class="form-control" id="idAlbum" name="idAlbum" value="@idAlbum" readonly>
     </div>
-    <div class="form-group">
+    <div class="form-group mb-3">
         <label for="nombreCancion">Nombre de la Canción:</label>
         <input type="text" class="form-control" id="nombreCancion" name="nombreCancion">
     </div>
-    <button type="submit" class="btn btn-primary">Subir Canción</button>
+    <button type="submit" class="btn btn-success">Subir Canción</button>
+    
 </form>
+<a asp-controller="Albums" asp-action="Details" asp-route-id="@idAlbum" class="btn btn-info my-3">Cancelar</a>

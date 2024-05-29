@@ -313,7 +313,8 @@ namespace Spotify.Controllers
 
 
         //obtener todas las listas
-        [HttpGet("ObtenerListas")]
+        [HttpPost("ObtenerListas")]
+        [Authorize]
         public async Task<IActionResult> ObtenerListas()
         {
             try
@@ -328,7 +329,8 @@ namespace Spotify.Controllers
         }
 
         //obtener listas publicas 
-        [HttpGet("ObtenerListasPublicas")]
+        [HttpPost("ObtenerListasPublicas")]
+        [Authorize]
         public async Task<IActionResult> ObtenerListasPublicas()
         {
             try
@@ -373,7 +375,7 @@ namespace Spotify.Controllers
         }
 
         //obtener todas las liastan tanto publicas como privadas de un usuario
-        [HttpPost("6y")]
+        [HttpPost("ObtenerListasUsuario")]
         [Authorize]
         public async Task<IActionResult> ObtenerListasUsuario()
         {

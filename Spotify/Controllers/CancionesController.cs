@@ -221,15 +221,18 @@ namespace Spotify.Controllers
 
         //Subir canciones bucket s3 
         // GET: /Canciones/Subir
-        public IActionResult CrearCancion()
+        //[HttpGet("Canciones/CrearCancion")]
+        public IActionResult CrearCancion(int idArtista, int idAlbum)
         {
+            ViewBag.IdArtista = idArtista;
+            ViewBag.IdAlbum = idAlbum;
             return View();
         }
 
         // POST: /Canciones/Subir
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Subir(IFormFile cancion, int idArtista, int idAlbum, string nombreCancion)
+        public async Task<IActionResult> Subir(IFormFile cancion, int idArtista, int idAlbum, string nombreCancion,string duracion)
         {
             try
             {
@@ -309,11 +312,11 @@ namespace Spotify.Controllers
 
                     // Guardar la URL de la canción en la base de datos
                     var urlCancion = $"https://spotify-bucket-proyecto.s3.amazonaws.com/{key}";
-                    var nuevaCancion = new Cancione { Nombre = nombreCancion, Url = urlCancion, IdAlbum = idAlbum };
+                    var nuevaCancion = new Cancione { Nombre = nombreCancion, Url = urlCancion, IdAlbum = idAlbum ,Duracion=duracion};
                     _context.Canciones.Add(nuevaCancion);
                     await _context.SaveChangesAsync();
 
-                    return Ok("Canción subida exitosamente a Amazon S3.");
+                    return RedirectToAction("Details", "Albums", new { id = idAlbum });
                 }
             }
             catch (Exception ex)
