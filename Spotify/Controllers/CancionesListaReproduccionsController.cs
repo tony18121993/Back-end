@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -165,5 +166,38 @@ namespace Spotify.Controllers
         {
             return _context.CancionesListaReproduccions.Any(e => e.Id == id);
         }
+
+        //añadir cancion a playlist desde front-end
+        [HttpPost]
+        [Authorize]
+        [Route("AnadirCancionAPlaylist")]
+        public async Task<IActionResult> AnadirCancionAPlaylist([FromBody] CancionesListaReproduccion canclist)
+        {
+            try
+            {
+                // Verificar si la canción ya está en la lista de reproducción
+                var existingEntry = await _context.CancionesListaReproduccions
+                    .FirstOrDefaultAsync(c => c.IdLista == canclist.IdLista && c.IdCancion == canclist.IdCancion);
+
+                // Si ya existe una entrada con la misma combinación de IdLista e IdCancion, devolver un mensaje de error
+                if (existingEntry != null)
+                {
+                    return BadRequest(new { message = "Esta canción ya se encuentra en esta lista de reproducción." });
+                }
+
+                // Si la canción no está en la lista de reproducción, añadir la nueva instancia a la base de datos
+                _context.CancionesListaReproduccions.Add(canclist);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Canción añadida correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"No se ha podido añadir la canción: {ex.Message}" });
+            }
+        }
+
+
+
     }
 }

@@ -205,19 +205,7 @@ namespace Spotify.Controllers
 
        
 
-        //obtener todas las canciones de un album 
-        //modificar para que sea authorize
-        [HttpGet]
-        [Route("CancionesporAlbum/{idAlbum}")]
-        public async Task<IActionResult> CancionesporAlbum(int idAlbum)
-        {
-            Console.WriteLine(idAlbum);
-            var canciones = await _context.Canciones
-                  .Where(a => a.IdAlbum == idAlbum)
-                   .ToListAsync();
-
-            return Json(canciones);
-        }
+        
 
         //Subir canciones bucket s3 
         // GET: /Canciones/Subir
@@ -306,7 +294,15 @@ namespace Spotify.Controllers
                     {
                         using (var stream = cancion.OpenReadStream())
                         {
-                            await transferUtility.UploadAsync(stream, "spotify-bucket-proyecto", key); // Cambiar "nombre-del-bucket" por el nombre de tu bucket de S3
+                            var uploadRequest = new TransferUtilityUploadRequest
+                            {
+                                InputStream = stream,
+                                Key = key,
+                                BucketName = "spotify-bucket-proyecto", // Cambiar "nombre-del-bucket" por el nombre de tu bucket de S3
+                                ContentType = cancion.ContentType // Asegúrate de establecer correctamente el tipo de contenido
+                            };
+                            uploadRequest.Metadata.Add("Content-Disposition", "inline"); // Establecer el Content-Disposition en inline
+                            await transferUtility.UploadAsync(uploadRequest);
                         }
                     }
 

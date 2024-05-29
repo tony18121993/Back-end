@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -203,6 +205,53 @@ namespace Spotify.Controllers
             Console.WriteLine(idArtista);
             var albums = await _context.Albums
                 .Where(a => a.IdArtista == idArtista)
+                .ToListAsync();
+
+            return Json(albums);
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        [Route("CancionesporAlbum/{idAlbum}")]
+        public async Task<IActionResult> CancionesporAlbum(int idAlbum)
+        {
+            // Obtener el ID del usuario del token
+            var userIdString = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+            // Intentar convertir el ID del usuario a un entero
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            // Buscar al usuario en la base de datos
+            var user = await _context.Usuarios.FindAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Consultar los álbumes y canciones, e incluir la información del tipo de usuario
+            var albums = await _context.Albums
+                .Where(a => a.IdAlbum == idAlbum)
+                .Select(a => new
+                {
+                    a.IdAlbum,
+                    a.Nombre,
+                    a.Genero,
+                    a.Imagen,
+                    a.Descripcion,
+                    Canciones = a.Canciones.Select(c => new
+                    {
+                        c.IdCancion,
+                        c.Nombre,
+                        c.Duracion,
+                        c.Url
+                    }).ToList(),
+                    userPremium = user.Premium // Incluir el estado premium del usuario
+                })
                 .ToListAsync();
 
             return Json(albums);
