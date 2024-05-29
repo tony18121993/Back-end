@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -261,6 +263,140 @@ namespace Spotify.Controllers
             return RedirectToAction("Details", new { id = idLista });
         }
 
+        //crear lista reproduccion desde frontend
 
+        [HttpPost("CrearLista")]
+        [Authorize]
+        public async Task<IActionResult> CrearLista([FromBody] ListasReproduccion listasReproduccion)
+        {
+            // Obtener el nombre de usuario desde el contexto del token
+            var username = HttpContext.User.Identity.Name;
+
+            // Consultar la base de datos para obtener el usuario
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (usuario == null)
+            {
+                // Usuario no encontrado, devolver error de autorización
+                return Unauthorized(new { message = "Usuario no autorizado." });
+            }
+
+            // Verificar si el usuario es premium
+            if (usuario.Premium)
+            {
+                listasReproduccion.IdUsuario = usuario.IdUsuario;
+                // Usuario premium, permitir que la solicitud continúe
+                if (ModelState.IsValid)
+                {
+                    try
+                    {
+                        _context.ListasReproduccions.Add(listasReproduccion);
+                        await _context.SaveChangesAsync();
+                        return Ok(new { message = "Lista creada correctamente." });
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(new { message = "No se ha podido guardar la lista. Error: " + ex.Message });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { message = "Los datos de la lista son inválidos." });
+                }
+            }
+            else
+            {
+                // Usuario no premium, devolver error de autorización
+                return Unauthorized(new { message = "Usuario no premium." });
+            }
+        }
+
+
+        //obtener todas las listas
+        [HttpGet("ObtenerListas")]
+        public async Task<IActionResult> ObtenerListas()
+        {
+            try
+            {
+                var listas = await _context.ListasReproduccions.ToListAsync();
+                return Ok(listas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Se produjo un error al obtener las listas de reproducción.", error = ex.Message });
+            }
+        }
+
+        //obtener listas publicas 
+        [HttpGet("ObtenerListasPublicas")]
+        public async Task<IActionResult> ObtenerListasPublicas()
+        {
+            try
+            {
+                var listas = await _context.ListasReproduccions
+                        .Where(a => a.Publica == true)
+                        .ToListAsync();
+                return Ok(listas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Se produjo un error al obtener las listas de reproducción.", error = ex.Message });
+            }
+        }
+
+
+        //obetner listas privadas asociadas a un usuario
+        [HttpPost("ObtenerListasprivadas")]
+        [Authorize]
+        public async Task<IActionResult> ObtenerListasprivadas()
+        {
+            try
+            {
+                // Obtener el ID de usuario del token de autenticación
+                var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return BadRequest(new { message = "No se pudo obtener el ID de usuario del token." });
+                }
+
+                // Consultar las listas de reproducción privadas del usuario
+                var listas = await _context.ListasReproduccions
+                    .Where(a => a.Publica == false && a.IdUsuario == userId)
+                    .ToListAsync();
+
+                return Ok(listas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Se produjo un error al obtener las listas de reproducción.", error = ex.Message });
+            }
+        }
+
+        //obtener todas las liastan tanto publicas como privadas de un usuario
+        [HttpPost("6y")]
+        [Authorize]
+        public async Task<IActionResult> ObtenerListasUsuario()
+        {
+            try
+            {
+                // Obtener el ID de usuario del token de autenticación
+                var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return BadRequest(new { message = "No se pudo obtener el ID de usuario del token." });
+                }
+
+                // Consultar las listas de reproducción privadas del usuario
+                var listas = await _context.ListasReproduccions
+                    .Where(a => a.IdUsuario == userId)
+                    .ToListAsync();
+
+                return Ok(listas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Se produjo un error al obtener las listas de reproducción.", error = ex.Message });
+            }
+        }
     }
 }

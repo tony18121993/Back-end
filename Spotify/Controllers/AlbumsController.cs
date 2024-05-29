@@ -166,9 +166,10 @@ namespace Spotify.Controllers
         }
 
 
+        
         [HttpGet]
-        [Route("AlbumsporArtista/{idArtista}")]
-        public async Task<IActionResult> AlbumsporArtista(int idArtista)
+        [Route("CancionesporArtista/{idArtista}")]
+        public async Task<IActionResult> CancionesporArtista(int idArtista)
         {
             Console.WriteLine(idArtista);
             var albums = await _context.Albums
@@ -194,6 +195,18 @@ namespace Spotify.Controllers
             return Json(albums);
         }
 
+        //Album por artista
+        [HttpGet]
+        [Route("AlbumsporArtista/{idArtista}")]
+        public async Task<IActionResult> AlbumsporArtista(int idArtista)
+        {
+            Console.WriteLine(idArtista);
+            var albums = await _context.Albums
+                .Where(a => a.IdArtista == idArtista)
+                .ToListAsync();
+
+            return Json(albums);
+        }
 
     }
 }

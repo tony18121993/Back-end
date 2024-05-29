@@ -202,19 +202,18 @@ namespace Spotify.Controllers
 
             return Json(canciones);
         }
+
        
+
+        //obtener todas las canciones de un album 
+        //modificar para que sea authorize
         [HttpGet]
         [Route("CancionesporAlbum/{idAlbum}")]
         public async Task<IActionResult> CancionesporAlbum(int idAlbum)
         {
             Console.WriteLine(idAlbum);
             var canciones = await _context.Canciones
-                   .FromSqlInterpolated($@"
-                        SELECT c.* 
-                        FROM Canciones c
-                        JOIN Album art ON c.id_album = art.id_album
-                        
-                        WHERE c.id_album = {idAlbum}")
+                  .Where(a => a.IdAlbum == idAlbum)
                    .ToListAsync();
 
             return Json(canciones);
