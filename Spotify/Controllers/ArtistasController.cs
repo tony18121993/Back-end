@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -215,6 +217,56 @@ namespace Spotify.Controllers
 
             return Json(artistasConImagen);
         }
+        [HttpGet]
+        [Route("ArtistasporNombre/{nombre}")]
+        public async Task<IActionResult> ArtistasporNombre(string nombre)
+        {
+            // Registro para depuración
+            Console.WriteLine("Nombre del string: " + nombre);
+
+            // Asegurarse de que el nombre no sea nulo o vacío
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return BadRequest("Nombre cannot be empty.");
+            }
+
+            // Convertir el nombre a minúsculas para la búsqueda
+            string nombreLower = nombre.ToLower();
+
+            // Buscar artistas cuyo nombre contenga el string dado y obtener la imagen del primer álbum
+            var artistasConImagen = await _context.Artistas
+                .Where(a => a.Nombre.ToLower().Contains(nombreLower))
+                .GroupJoin(
+                    _context.Albums,
+                    artista => artista.IdArtista,
+                    album => album.IdArtista,
+                    (artista, albums) => new
+                    {
+                        Artista = artista,
+                        PrimerAlbumImagen = albums.OrderBy(album => album.IdArtista).Select(album => album.Imagen).FirstOrDefault()
+                    })
+                .Select(a => new
+                {
+                    a.Artista.IdArtista,
+                    a.Artista.Nombre,
+                    a.Artista.Descripcion,
+                    ImagenPrimerAlbum = a.PrimerAlbumImagen
+                })
+                .ToListAsync();
+
+            // Registro de depuración para el resultado de la consulta
+            Console.WriteLine("Número de artistas encontrados: " + artistasConImagen.Count);
+
+            if (artistasConImagen == null || !artistasConImagen.Any())
+            {
+                return NotFound("No artists found with the given name.");
+            }
+
+            return Ok(artistasConImagen);
+        }
+
+
+
 
     }
 }

@@ -193,7 +193,7 @@ namespace Spotify.Controllers
             Console.WriteLine(idListaReproduccion);
             var canciones = await _context.Canciones
                    .FromSqlInterpolated($@"
-                        SELECT c.id_cancion, c.nombre, c.duracion, c.url, c.id_album
+                        SELECT c.id_cancion, c.nombre, c.duracion, c.url, c.id_album, l.nombre AS NombreLista
                         FROM Canciones c
                         JOIN Canciones_Lista_Reproduccion clr ON c.id_cancion = clr.id_cancion
                         JOIN Listas_Reproduccion l ON l.id_lista = clr.id_lista

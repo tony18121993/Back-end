@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -400,5 +403,46 @@ namespace Spotify.Controllers
                 return StatusCode(500, new { message = "Se produjo un error al obtener las listas de reproducción.", error = ex.Message });
             }
         }
+
+        [HttpGet]
+        [Route("ListasporNombre/{nombre}")]
+        public async Task<IActionResult> ListasporNombre(string nombre)
+        {
+
+            // Asegurarse de que el nombre no sea nulo o vacío
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return BadRequest("Nombre cannot be empty.");
+            }
+
+            // Convertir el nombre a minúsculas para la búsqueda
+            string nombreLower = nombre.ToLower();
+
+            // Buscar listas cuyo nombre contenga el string dado
+            var listas = await _context.ListasReproduccions
+                                         .Where(a => a.Publica == true && a.Nombre.ToLower().Contains(nombreLower))
+                                         .ToListAsync();
+
+
+
+            if (listas == null || !listas.Any())
+            {
+                return NotFound("No list found with the given name.");
+            }
+
+            return Json(listas);
+        }
+        [HttpGet]
+        [Route("listas/{idlista}")]
+        public async Task<IActionResult> CancionesporLista(int idlista)
+        {
+            var listaReproduccion = await _context.ListasReproduccions
+                                    .Where(l => l.IdLista == idlista)
+                                    .ToListAsync();
+
+
+            return Json(listaReproduccion);
+        }
     }
+    
 }
