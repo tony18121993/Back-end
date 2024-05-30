@@ -130,6 +130,7 @@ namespace Spotify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdUsuario,Username,Password,Nombre,Apellidos,FechaNacimiento,Telefono,Premium,Admin,Email")] Usuario usuario)
         {
+            usuario.Password = BCrypt.Net.BCrypt.HashPassword(usuario.Password);
             if (ModelState.IsValid)
             {
                 _context.Add(usuario);

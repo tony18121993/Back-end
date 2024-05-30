@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Spotify.Models;
 using Amazon.S3.Model;
+using System.Security.Claims;
 
 namespace Spotify.Controllers
 {
@@ -186,10 +187,19 @@ namespace Spotify.Controllers
         }
 
 
-        [HttpGet]
+        [HttpPost]
+        [Authorize]
         [Route("Canciones/listas/{idListaReproduccion}")]
         public async Task<IActionResult> ListaReproduccion(int idListaReproduccion)
         {
+
+            var userIdString = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+            // Intentar convertir el ID del usuario a un entero
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
             Console.WriteLine(idListaReproduccion);
             var canciones = await _context.Canciones
                    .FromSqlInterpolated($@"

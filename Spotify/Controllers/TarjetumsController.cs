@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using Spotify.Models;
 
 namespace Spotify.Controllers
@@ -181,5 +186,67 @@ namespace Spotify.Controllers
         {
             return _context.Tarjeta.Any(e => e.IdTarjeta == id);
         }
+
+
+        //añadir tarjeta desde font-end
+        [HttpPost]
+        [Authorize]
+        [Route("Agregartarjeta")]
+        public async Task<IActionResult> Agregartarjeta([FromBody] Tarjetum tarjetum)
+        {
+            try
+            {
+                // Obtener el nombre de usuario del usuario autenticado
+                var username = HttpContext.User.Identity.Name;
+
+                // Consultar la base de datos para obtener el usuario
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (usuario == null)
+                {
+                    // Usuario no encontrado, devolver error de autorización
+                    return Unauthorized(new { message = "Usuario no autorizado." });
+                }
+
+                // Verificar si el usuario es premium
+                if (!usuario.Premium)
+                {
+                   
+
+                    // Crear una nueva instancia de Tarjetum con la fecha de expiración adecuada
+                    var nuevaTarjeta = new Tarjetum
+                    {
+                        IdUsuario = usuario.IdUsuario,
+                        NombreTarjeta = tarjetum.NombreTarjeta,
+                        NumeroTarjeta = tarjetum.NumeroTarjeta,
+                        FechaExpiracion = tarjetum.FechaExpiracion,
+                        Cvv = tarjetum.Cvv
+                    };
+
+                    // Añadir la nueva tarjeta a la base de datos
+                    _context.Add(nuevaTarjeta);
+                    await _context.SaveChangesAsync();
+
+                    // Cambiar al usuario a premium
+                    usuario.Premium = true;
+                    _context.Update(usuario);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new { message = "Tarjeta agregada y usuario ahora es premium." });
+                }
+                else
+                {
+                    return BadRequest(new { message = "El usuario ya es premium." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"No se ha podido agregar la tarjeta: {ex.Message}" });
+            }
+        }
+
+
+
+
     }
 }

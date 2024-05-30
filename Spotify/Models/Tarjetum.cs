@@ -13,7 +13,7 @@ public partial class Tarjetum
 
     public string NumeroTarjeta { get; set; } = null!;
 
-    public DateOnly FechaExpiracion { get; set; }
+    public DateTime FechaExpiracion { get; set; }
 
     public int Cvv { get; set; }
 

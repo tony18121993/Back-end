@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -197,6 +198,62 @@ namespace Spotify.Controllers
             }
         }
 
+        //eliminar cancion de playlist 
+        [HttpPost]
+        [Authorize]
+        [Route("EliminarCancionAPlaylist")]
+        public async Task<IActionResult> EliminarCancionAPlaylist([FromBody] CancionesListaReproduccion canclist)
+        {
+            try
+            {
+                // Obtener el ID del usuario autenticado desde los claims
+                var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { message = "Usuario no autenticado." });
+                }
+
+                // Convertir el ID del usuario autenticado a entero
+                if (!int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new { message = "ID de usuario no válido." });
+                }
+
+                // Obtener la lista de reproducción y verificar el propietario
+                var propietariolista = await _context.ListasReproduccions
+                    .FirstOrDefaultAsync(a => a.IdLista == canclist.IdLista);
+
+                if (propietariolista == null)
+                {
+                    return NotFound(new { message = "Lista de reproducción no encontrada." });
+                }
+
+                if (propietariolista.IdUsuario != userId)
+                {
+                    return BadRequest(new { message = "No eres el dueño de la lista. No puedes eliminar canciones." });
+                }
+
+                // Verificar si la canción ya está en la lista de reproducción
+                var existingEntry = await _context.CancionesListaReproduccions
+                    .FirstOrDefaultAsync(c => c.IdLista == canclist.IdLista && c.IdCancion == canclist.IdCancion);
+
+                // Si no existe una entrada con la misma combinación de IdLista e IdCancion, devolver un mensaje de error
+                if (existingEntry == null)
+                {
+                    return BadRequest(new { message = "Esta canción no se encuentra en esta lista de reproducción." });
+                }
+
+                // Si la canción está en la lista de reproducción, eliminarla de la base de datos
+                _context.CancionesListaReproduccions.Remove(existingEntry);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Canción eliminada correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"No se ha podido eliminar la canción: {ex.Message}" });
+            }
+        }
 
 
     }
