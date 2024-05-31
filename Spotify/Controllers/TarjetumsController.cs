@@ -66,7 +66,7 @@ namespace Spotify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdTarjeta,IdUsuario,NombreTarjeta,NumeroTarjeta,FechaExpiracion,Cvv")] Tarjetum tarjetum)
         {
-            
+
             if (ModelState.IsValid)
             {
                 _context.Add(tarjetum);
@@ -211,7 +211,7 @@ namespace Spotify.Controllers
                 // Verificar si el usuario es premium
                 if (!usuario.Premium)
                 {
-                   
+
 
                     // Crear una nueva instancia de Tarjetum con la fecha de expiración adecuada
                     var nuevaTarjeta = new Tarjetum
@@ -245,8 +245,47 @@ namespace Spotify.Controllers
             }
         }
 
+        //eliminar tarjeta desde front-end
+        [HttpPost]
+        [Authorize]
+        [Route("EliminarTarjeta")]
+        public async Task<IActionResult> EliminarTarjeta()
+        {
+            try
+            {
+                // Obtener el nombre de usuario del usuario autenticado
+                var username = HttpContext.User.Identity.Name;
+
+                // Consultar la base de datos para obtener el usuario
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == username);
+
+                if (usuario == null)
+                {
+                    // Usuario no encontrado, devolver error de autorización
+                    return Unauthorized(new { message = "Usuario no autorizado." });
+                }
+
+                // Verificar si el usuario es premium
+                if (usuario.Premium)
+                {
+                    var tarjeta = await _context.Tarjeta.FirstOrDefaultAsync(u => u.IdUsuario == usuario.IdUsuario);
+                    if (tarjeta != null)
+                    {
+                        _context.Tarjeta.Remove(tarjeta);
+                        usuario.Premium = false;  // Actualizar el atributo Premium del usuario a false
+                        _context.Update(usuario); // Guardar los cambios en el contexto
+                    }
 
 
-
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = $"Se ha eliminado la tarjeta" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"No se ha podido eliminar la tarjeta: {ex.Message}" });
+            }
+            return BadRequest(new { message = $"No se ha podido agregar la tarjeta" });
+        }
     }
 }
