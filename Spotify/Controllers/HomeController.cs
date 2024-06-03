@@ -16,7 +16,26 @@ namespace Spotify.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            var authCookie = Request.Cookies["auth_token"];
+            if (authCookie == null)
+            {
+                // Redirigir a localhost:3000 si la cookie no existe
+                return Redirect("http://localhost:3000");
+            }
+                return View();
+        }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            // Eliminar la cookie auth_token
+            if (Request.Cookies["auth_token"] != null)
+            {
+                Response.Cookies.Delete("auth_token");
+            }
+
+            // Redirigir al usuario a la página de inicio de sesión
+            return Redirect("http://localhost:3000");
         }
 
         public IActionResult Privacy()
