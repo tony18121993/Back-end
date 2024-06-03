@@ -55,7 +55,7 @@ namespace Spotify.Controllers
         private string GenerateJwtToken(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            Console.WriteLine("Valor de SecretKey en GenerateJwtToken: " + _jwtConfig.SecretKey);
+          
 
             // Verificar si la clave secreta del JWT no es nula
             if (string.IsNullOrEmpty(_jwtConfig.SecretKey))
@@ -130,6 +130,7 @@ namespace Spotify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdUsuario,Username,Password,Nombre,Apellidos,FechaNacimiento,Telefono,Premium,Admin,Email")] Usuario usuario)
         {
+            Console.WriteLine("el formato es"+usuario.FechaNacimiento);
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(usuario.Password);
             if (ModelState.IsValid)
             {
@@ -307,8 +308,7 @@ namespace Spotify.Controllers
         [HttpPost("/usuario/crearusuario")]
         public async Task<IActionResult> CrearUsuario([FromBody] Usuario usuario)
         {
-            Console.WriteLine("Aqui " + usuario);
-
+           
             // Comprobar si ya existe un usuario con el mismo username
             var existingUser = await _context.Usuarios
                                              .FirstOrDefaultAsync(u => u.Username == usuario.Username);
@@ -326,7 +326,7 @@ namespace Spotify.Controllers
                 return BadRequest(ModelState);
             }
 
-            Console.WriteLine(usuario.FechaNacimiento);
+            
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(usuario.Password);
             usuario.Admin = false;
             usuario.Premium = false;
