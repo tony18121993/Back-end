@@ -238,8 +238,6 @@ namespace Spotify.Controllers
                 var credentialsPath = @"C:\Users\TONY\.aws\credentials";
 
                 // Leer el contenido del archivo
-
-
                 string lines;
                 using (StreamReader reader = new StreamReader(credentialsPath))
                 {
@@ -308,10 +306,10 @@ namespace Spotify.Controllers
                             {
                                 InputStream = stream,
                                 Key = key,
-                                BucketName = "spotify-bucket-proyecto", // Cambiar "nombre-del-bucket" por el nombre de tu bucket de S3
-                                ContentType = cancion.ContentType // Asegúrate de establecer correctamente el tipo de contenido
+                                BucketName = "spotify-bucket-proyecto", 
+                                ContentType = cancion.ContentType 
                             };
-                            uploadRequest.Metadata.Add("Content-Disposition", "inline"); // Establecer el Content-Disposition en inline
+                            uploadRequest.Metadata.Add("Content-Disposition", "inline"); 
                             await transferUtility.UploadAsync(uploadRequest);
                         }
                     }
