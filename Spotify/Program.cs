@@ -9,7 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Configuraci�n de JWT
 var jwtConfigSection = builder.Configuration.GetSection("JwtConfig");
 var jwtConfig = jwtConfigSection.Get<JwtConfig>();
-Console.WriteLine("Valor de SecretKey: " + jwtConfig.SecretKey);
 builder.Services.Configure<JwtConfig>(jwtConfigSection);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

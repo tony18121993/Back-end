@@ -272,13 +272,7 @@ namespace Spotify.Controllers
                 {
                     Console.WriteLine("No se encontraron las credenciales necesarias en el archivo.");
                 }
-                else
-                {
-                    Console.WriteLine("Credenciales obtenidas exitosamente:");
-                    Console.WriteLine($"Access Key ID: {accessKeyId}");
-                    Console.WriteLine($"Secret Access Key: {secretAccessKey}");
-                    Console.WriteLine($"Session Token: {sessionToken ?? "No hay token de sesión"}");
-                }
+                
                 // Subir la canción a Amazon S3
                 using (var client = new AmazonS3Client(accessKeyId, secretAccessKey, sessionToken, Amazon.RegionEndpoint.USEast1)) // Cambiar la región según corresponda
                 {
