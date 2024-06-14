@@ -20,7 +20,7 @@ namespace Spotify.Controllers
             if (authCookie == null)
             {
                 // Redirigir a localhost:3000 si la cookie no existe
-                return Redirect("http://localhost:3000");
+                return Redirect("https://spotifyreact.work.gd");
             }
                 return View();
         }
@@ -35,7 +35,7 @@ namespace Spotify.Controllers
             }
 
             // Redirigir al usuario a la página de inicio de sesión
-            return Redirect("http://localhost:3000");
+            return Redirect("https://spotifyreact.work.gd");
         }
 
         public IActionResult Privacy()
